@@ -36,8 +36,12 @@
         <div class="container">
             <h2>Get Started</h2>
             <p>Sign up or log in to generate your own WiFi QR codes and manage your network securely.</p>
-            <button onclick="window.location.href='signup.html'">Sign Up</button>
-            <button onclick="window.location.href='login.html'">Log In</button>
+            <a href="https://us-east-2xpfcdj7oh.auth.us-east-2.amazoncognito.com/signup?client_id=2919k932qgd7r46tltln3bps6k&response_type=token&scope=email+openid+phone&redirect_uri=https://main.dmq1znjt1nkrp.amplifyapp.com">
+                <button>Sign Up</button>
+            </a>
+            <a href="https://us-east-2xpfcdj7oh.auth.us-east-2.amazoncognito.com/login?client_id=2919k932qgd7r46tltln3bps6k&response_type=token&scope=email+openid+phone&redirect_uri=https://main.dmq1znjt1nkrp.amplifyapp.com">
+                <button>Log In</button>
+            </a>
         </div>
     </section>
 
@@ -61,6 +65,15 @@
         </div>
     </footer>
 
+    <!-- Token Capture Script -->
+    <script>
+        const hash = window.location.hash;
+        const token = new URLSearchParams(hash.substring(1)).get('access_token');
+        if (token) {
+            console.log("Access token:", token);
+            localStorage.setItem("access_token", token);
+        }
+    </script>
     <script src="script.js"></script>
 </body>
 
