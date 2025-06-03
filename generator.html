@@ -1,60 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>WiFi QR Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Code Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f6f6f6;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 1.5rem;
+      font-size: 1.5rem;
+    }
+    form {
+      margin-top: 2rem;
+    }
+    input, select, button {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      font-size: 1rem;
+    }
+    #qrcode {
+      margin-top: 2rem;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <h1>QR Code Generator</h1>
-      <p>Secure your WiFi sharing with dynamic QR codes</p>
-    </div>
-  </header>
+  <header>QR Code Generator</header>
 
-  <main class="container">
-    <div id="status">Checking authentication...</div>
-    <div id="qr-display" style="margin-top: 20px;"></div>
-  </main>
+  <form id="wifiForm">
+    <input type="text" id="ssid" placeholder="Wi-Fi Name (SSID)" required />
+    <input type="password" id="password" placeholder="Wi-Fi Password" required />
+    <select id="authType">
+      <option value="WPA">WPA/WPA2</option>
+      <option value="WEP">WEP</option>
+      <option value="">Open</option>
+    </select>
+    <br />
+    <button type="submit">Generate QR</button>
+  </form>
 
+  <div id="qrcode"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
-    // Parse access_token from URL fragment
-    const hash = window.location.hash;
-    const accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
-    
-    if (!accessToken) {
-      document.getElementById("status").innerText = "Not authenticated. Please log in.";
-    } else {
-      // Optional: Store token in localStorage for future use
-      localStorage.setItem("access_token", accessToken);
-      document.getElementById("status").innerText = "Authenticated! Generating QR...";
+    document.getElementById("wifiForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const ssid = document.getElementById("ssid").value;
+      const password = document.getElementById("password").value;
+      const auth = document.getElementById("authType").value;
 
-      // Call your FastAPI secure route (adjust URL if needed)
-      fetch('https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/secure', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.qr_code_base64) {
-          const img = document.createElement("img");
-          img.src = `data:image/png;base64,${data.qr_code_base64}`;
-          img.alt = "WiFi QR Code";
-          document.getElementById("qr-display").appendChild(img);
-          document.getElementById("status").innerText = "Your QR code is ready!";
-        } else {
-          document.getElementById("status").innerText = "Failed to retrieve QR code.";
-        }
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        document.getElementById("status").innerText = "Error contacting the server.";
-      });
-    }
+      const payload = `WIFI:S:${ssid};T:${auth};P:${password};;`;
+
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), payload);
+    });
   </script>
 </body>
 </html>
