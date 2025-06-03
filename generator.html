@@ -32,7 +32,7 @@
       document.getElementById("status").innerText = "Authenticated! Generating QR...";
 
       // Call your FastAPI secure route (adjust URL if needed)
-      fetch('https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/', {
+      fetch('https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/secure', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${accessToken}`
