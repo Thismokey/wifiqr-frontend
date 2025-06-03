@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WiFi QR Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>QR Code Generator</h1>
+      <p>Secure your WiFi sharing with dynamic QR codes</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="status">Checking authentication...</div>
+    <div id="qr-display" style="margin-top: 20px;"></div>
+  </main>
+
+  <script>
+    // Parse access_token from URL fragment
+    const hash = window.location.hash;
+    const accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
+    
+    if (!accessToken) {
+      document.getElementById("status").innerText = "Not authenticated. Please log in.";
+    } else {
+      // Optional: Store token in localStorage for future use
+      localStorage.setItem("access_token", accessToken);
+      document.getElementById("status").innerText = "Authenticated! Generating QR...";
+
+      // Call your FastAPI secure route (adjust URL if needed)
+      fetch('https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.qr_code_base64) {
+          const img = document.createElement("img");
+          img.src = `data:image/png;base64,${data.qr_code_base64}`;
+          img.alt = "WiFi QR Code";
+          document.getElementById("qr-display").appendChild(img);
+          document.getElementById("status").innerText = "Your QR code is ready!";
+        } else {
+          document.getElementById("status").innerText = "Failed to retrieve QR code.";
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("status").innerText = "Error contacting the server.";
+      });
+    }
+  </script>
+</body>
+</html>
