@@ -1,99 +1,102 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Security Dashboard</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 2rem;
-      background: #f9f9f9;
-    }
-    h1 {
-      text-align: center;
-    }
-    .top-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .cve {
-      background: white;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-left: 5px solid #4CAF50;
-    }
-    .cve h2 {
-      margin: 0;
-    }
-    .cve p {
-      margin: 0.5rem 0 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Recent Known Exploited Vulnerabilities</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            vertical-align: top;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button {
+            margin: 10px 5px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Recent Known Exploited Vulnerabilities</h1>
-
-  <div class="top-buttons">
+    <h1>Recent Known Exploited Vulnerabilities</h1>
     <button onclick="window.location.href='generator.html'">Go to QR Generator</button>
     <button onclick="logout()">Log Out</button>
-  </div>
+    <div id="content">Loading...</div>
 
-  <div id="results">Loading...</div>
+    <script>
+        const token = window.location.hash.split('id_token=')[1]?.split('&')[0];
 
-  <script>
-  const token = localStorage.getItem("access_token");
-  const container = document.getElementById("results");
+        if (!token) {
+            document.getElementById("content").innerText = "Authorization token missing. Please log in again.";
+        } else {
+            fetch('https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/cve', {
+                method: 'GET',
+                headers: {
+                    'Authorization': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const items = data.cve_items || [];
+                if (!items.length) {
+                    document.getElementById("content").innerText = "No CVE data available.";
+                    return;
+                }
 
-  async function loadCVEs() {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+                const table = document.createElement("table");
+                table.innerHTML = `
+                    <tr>
+                        <th>CVE ID</th>
+                        <th>Project</th>
+                        <th>Product</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Date Added</th>
+                        <th>Links</th>
+                    </tr>`;
 
-      const res = await fetch("https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/cve", {
-        headers: { Authorization: "Bearer " + token },
-        signal: controller.signal
-      });
+                items.forEach(item => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${item.cveID}</td>
+                        <td>${item.vendorProject}</td>
+                        <td>${item.product}</td>
+                        <td>${item.vulnerabilityName}</td>
+                        <td>${item.shortDescription}</td>
+                        <td>${item.dateAdded}</td>
+                        <td>${(item.notes || []).join('<br>')}</td>`;
+                    table.appendChild(row);
+                });
 
-      clearTimeout(timeout);
+                const contentDiv = document.getElementById("content");
+                contentDiv.innerHTML = "";
+                contentDiv.appendChild(table);
+            })
+            .catch(error => {
+                console.error("Error loading CVE data:", error);
+                document.getElementById("content").innerText = "Failed to load CVE data.";
+            });
+        }
 
-      if (!res.ok) {
-        container.innerText = "Failed to load CVEs.";
-        return;
-      }
-
-      const data = await res.json();
-      container.innerHTML = "";
-
-      (data.cves || []).slice(0, 10).forEach(item => {
-        const div = document.createElement("div");
-        div.className = "cve";
-        div.innerHTML = \`
-          <h2>\${item.cveID}</h2>
-          <p><strong>Vendor:</strong> \${item.vendorProject}</p>
-          <p><strong>Product:</strong> \${item.product}</p>
-          <p><strong>Vulnerability Name:</strong> \${item.vulnerabilityName}</p>
-          <p><strong>Date Added:</strong> \${item.dateAdded}</p>
-          <p><strong>Description:</strong> \${item.notes || "N/A"}</p>
-        \`;
-        container.appendChild(div);
-      });
-    } catch (err) {
-      console.error(err);
-      container.innerText = "An error occurred while loading CVEs.";
-    }
-  }
-
-  loadCVEs();
-
-  function logout() {
-    localStorage.removeItem("access_token");
-    window.location.href =
-      "https://us-east-2xpfcdj7oh.auth.us-east-2.amazoncognito.com/logout" +
-      "?client_id=2919k932qgd7r46tltln3bps6k" +
-      "&logout_uri=https://main.dmq1znjt1nkrp.amplifyapp.com";
-  }
-</script>
+        function logout() {
+            window.location.href = "https://us-east-2xpfcdj7oh.auth.us-east-2.amazoncognito.com/logout?client_id=2919k932qgd7r46tltln3bps6k&logout_uri=https://main.dmq1znjt1nkrp.amplifyapp.com";
+        }
+    </script>
 </body>
 </html>
