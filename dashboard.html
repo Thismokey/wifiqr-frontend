@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Security Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+    }
+    .cve {
+      background: white;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-left: 5px solid #4CAF50;
+    }
+    .cve h2 {
+      margin: 0;
+    }
+    .cve p {
+      margin: 0.5rem 0 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Recent Known Exploited Vulnerabilities</h1>
+  <div id="results">Loading...</div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+    fetch("https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/cve", {
+      headers: { Authorization: "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById("results");
+      container.innerHTML = "";
+      data.cves.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "cve";
+        div.innerHTML = \`
+          <h2>\${item.cveID}</h2>
+          <p><strong>Vendor:</strong> \${item.vendorProject}</p>
+          <p><strong>Product:</strong> \${item.product}</p>
+          <p><strong>Vulnerability Name:</strong> \${item.vulnerabilityName}</p>
+          <p><strong>Date Added:</strong> \${item.dateAdded}</p>
+          <p><strong>Description:</strong> \${item.notes || "N/A"}</p>
+        \`;
+        container.appendChild(div);
+      });
+    })
+    .catch(err => {
+      document.getElementById("results").innerText = "Failed to load CVEs.";
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
