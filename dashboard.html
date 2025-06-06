@@ -12,6 +12,12 @@
     h1 {
       text-align: center;
     }
+    .top-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
     .cve {
       background: white;
       padding: 1rem;
@@ -28,10 +34,17 @@
 </head>
 <body>
   <h1>Recent Known Exploited Vulnerabilities</h1>
+
+  <div class="top-buttons">
+    <button onclick="window.location.href='generator.html'">Go to QR Generator</button>
+    <button onclick="logout()">Log Out</button>
+  </div>
+
   <div id="results">Loading...</div>
 
   <script>
     const token = localStorage.getItem("access_token");
+
     fetch("https://ho1c7lp9og.execute-api.us-east-2.amazonaws.com/Prod/cve", {
       headers: { Authorization: "Bearer " + token }
     })
@@ -57,6 +70,14 @@
       document.getElementById("results").innerText = "Failed to load CVEs.";
       console.error(err);
     });
+
+    function logout() {
+      localStorage.removeItem("access_token");
+      window.location.href =
+        "https://us-east-2xpfcdj7oh.auth.us-east-2.amazoncognito.com/logout" +
+        "?client_id=2919k932qgd7r46tltln3bps6k" +
+        "&logout_uri=https://main.dmq1znjt1nkrp.amplifyapp.com";
+    }
   </script>
 </body>
 </html>
